@@ -28,7 +28,7 @@ const int X = 0, Y = 1, Z = 2 ,W=3, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
 const int nModels = 7;  // number of models in this scene
 //I added the ship I made and replace xyz coordinate plane with a model of the sun with the x coordinate in white, the y coordinate in green and z in blue
-char * modelFile[nModels] = {"Ruber.tri", "sphere-r50.tri ","sphere-r50.tri", "sphere-r50.tri",
+char * modelFile[nModels] = {"Ruber2.tri", "sphere-r50.tri ","sphere-r50.tri", "sphere-r50.tri",
 "sphere-r50.tri", "BattleCruiser.tri", "sphere-r50.tri" };
 float modelBR[nModels];       // model's bounding radius
 float scaleValue[nModels];    // model's scaling "size" value
@@ -71,10 +71,10 @@ GLuint MVP ;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 // model, view, projection matrices and values to create modelMatrix.
 //loaded in order of Ruber, Umun, Duo, Primus, Secundus, Warbird, missiles
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 1000.0f, 25.0f};   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 25.0f};   // size of model
 glm::vec3 scale[nModels];       // set in init()
 glm::vec3 translate[nModels] = {glm::vec3(0,0,0), glm::vec3(-4000, 0, 0), glm::vec3(-9000, 0, 0),
-glm::vec3(-8100, 0, 0), glm::vec3(-7250, 0, 0),
+glm::vec3(900, 0, 0), glm::vec3(1750, 0, 0),
 glm::vec3(5000, 1000, 5000), glm::vec3(0, 0, 0),
 
 
@@ -120,22 +120,23 @@ void display() {
 	  {
 		  modelMatrix = rotationTwo * glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
-		  //DuoMatrix = modelMatrix; //not sure if needed
+		  DuoMatrix = modelMatrix; //not sure if needed
 		  DuoTranslate = glm::vec3(DuoMatrix[3]);
+		  //showVec3("Duo", DuoTranslate);
 	  }
 	  //found online : R_orbit_planet * T_orbit_planet * R_orbit_moon * T_orbit_moon ...dont think this works
 	  //how to make Primus orbit Duo?
 	  else if (m == 3) //Primus orbits Duo
 	  {
 
-		  modelMatrix = rotationOne * glm::translate(glm::mat4(), translate[m]) *
-			  glm::scale(glm::mat4(), glm::vec3(scale[m]))* glm::translate(glm::mat4(), DuoTranslate);
+		  modelMatrix = glm::translate(glm::mat4(), DuoTranslate) * rotationOne * glm::translate(glm::mat4(), translate[m]) *
+			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 			  //* glm::translate(glm::mat4(), DuoTranslate);
 	  }
 	  else if (m == 4) //Secundus orbits Duo
 	  {
-		  modelMatrix = rotationTwo * glm::translate(glm::mat4(), translate[m]) *
-			  glm::scale(glm::mat4(), glm::vec3(scale[m]))* glm::translate(glm::mat4(), DuoTranslate);
+		  modelMatrix = glm::translate(glm::mat4(), DuoTranslate) * rotationTwo * glm::translate(glm::mat4(), translate[m]) *
+			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 	  }
 	  else
 	  {
