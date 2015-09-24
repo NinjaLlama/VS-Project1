@@ -82,6 +82,8 @@ glm::vec3(5000, 1000, 5000), glm::vec3(0, 0, 0),
 glm::mat4 modelMatrix;          // set in display()
 glm::mat4 DuoMatrix;
 glm::vec3 DuoTranslate;
+glm::mat4 UnumMatrix;
+glm::vec3 UnumTranslate;
 glm::mat4 viewMatrix;           // set in init()
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
@@ -115,17 +117,17 @@ void display() {
 	  {
 		  modelMatrix = rotationOne * glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
+		  UnumMatrix = modelMatrix;
+		  UnumTranslate = glm::vec3(UnumMatrix[3]);
 	  }
 	  else if (m == 2) //Duo orbits Ruber
 	  {
 		  modelMatrix = rotationTwo * glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
-		  DuoMatrix = modelMatrix; //not sure if needed
+		  DuoMatrix = modelMatrix;
 		  DuoTranslate = glm::vec3(DuoMatrix[3]);
-		  //showVec3("Duo", DuoTranslate);
+		  //showVec3("Duo", DuoTranslate); //for debugging purposes
 	  }
-	  //found online : R_orbit_planet * T_orbit_planet * R_orbit_moon * T_orbit_moon ...dont think this works
-	  //how to make Primus orbit Duo?
 	  else if (m == 3) //Primus orbits Duo
 	  {
 
@@ -143,6 +145,29 @@ void display() {
 		  modelMatrix = glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 	  }
+	//dynamic cameras
+	  //~~~ my camera logic is messed up, how to fix???? ~~~
+	  //Unum camera
+	  if (cameraDuo) //if cameraDuo is true, it means Unum is the current camera view and the Duo camera view is the next to be toggled
+	  {
+		  float xCoordinateUnum = UnumTranslate[0];
+		  float zCoordinateUnum = UnumTranslate[2];
+		  eye = glm::vec3(xCoordinateUnum, 0.0f, zCoordinateUnum + 4000.0f);     // camera is on XZ plane
+		  at = glm::vec3(xCoordinateUnum, 0.0f, 0.0f);                    // camera is looking at Duo
+		  up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
+		  viewMatrix = glm::lookAt(eye, at, up);
+	  }
+	  //Duo camera
+	  if (cameraFront) //if cameraFront is true, it means Duo is the current camera view and the front camera view is the next to be toggled
+	  {
+		  float xCoordinateDuo = DuoTranslate[0];
+		  float zCoordinateDuo = DuoTranslate[2];
+		  eye = glm::vec3(xCoordinateDuo, 0.0f, zCoordinateDuo + 4000.0f);     // camera is on XZ plane
+		  at = glm::vec3(xCoordinateDuo, 0.0f, 0.0f);                    // camera is looking at Duo
+		  up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
+		  viewMatrix = glm::lookAt(eye, at, up);
+	  }
+
     // glUniformMatrix4fv(model, 1, GL_FALSE, glm::value_ptr( modelMatrix)); 
     ModelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix; 
     glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(ModelViewProjectionMatrix));
