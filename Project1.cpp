@@ -26,13 +26,13 @@ Mike Barnes
 
 const int X = 0, Y = 1, Z = 2 ,W=3, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
-const int nModels = 7;  // number of models in this scene
+const int nModels = 8;  // number of models in this scene
 //I added the ship I made and replace xyz coordinate plane with a model of the sun with the x coordinate in white, the y coordinate in green and z in blue
-char * modelFile[nModels] = {"Ruber2.tri", "sphere-r50.tri ","sphere-r50.tri", "sphere-r50.tri",
-"sphere-r50.tri", "BattleCruiser.tri", "sphere-r50.tri" };
+char * modelFile[nModels] = {"Ruber.tri", "Unum.tri ","Duo.tri", "Primus.tri",
+"Segundus.tri", "BattleCruiser.tri", "sphere-r50.tri", "axes-r100.tri" };
 float modelBR[nModels];       // model's bounding radius
 float scaleValue[nModels];    // model's scaling "size" value
-const int nVertices[nModels] = {264 *3, 264 * 3, 264 * 3, 264 * 3, 264 * 3, 2772 * 3, 264 * 3};
+const int nVertices[nModels] = {264 *3, 264 * 3, 278 * 3, 264 * 3, 264 * 3, 2772 * 3, 264 * 3, 120 * 3};
 char * vertexShaderFile   = "simpleVertex.glsl";     
 char * fragmentShaderFile = "simpleFragment.glsl";    
 GLuint shaderProgram; 
@@ -50,10 +50,14 @@ bool cameraUnum = false;
 bool cameraDuo = false;
 
 // window title strings
-char baseStr[50] = "465 Project 1 {f, t, l} : ";
-char viewStr[15] = " front view";
-char fpsStr[15], timerStr[20] = " interval timer";
-char titleStr[100];
+char baseStr[50] = "465 Project 1 : ";
+char viewStr[15] = "  View Front";
+char warbirdStr[15] = "  Warbird ??";
+char unumStr[15] = "  Unum ?";
+char secundusStr[15] = "  Secundus ?";
+char fpsStr[15] = "  F/S ??";
+char updateStr[20] = "  U/S ??";
+char titleStr[500];
 
 // rotation variables  -- the modelMatrix
 GLfloat rotateRadianOne = 0.0f;
@@ -71,17 +75,21 @@ GLuint MVP ;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 // model, view, projection matrices and values to create modelMatrix.
 //loaded in order of Ruber, Umun, Duo, Primus, Secundus, Warbird, missiles
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 25.0f};   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 25.0f, 1000.0f};   // size of model
 glm::vec3 scale[nModels];       // set in init()
-glm::vec3 translate[nModels] = {glm::vec3(0,0,0), glm::vec3(-4000, 0, 0), glm::vec3(-9000, 0, 0),
+glm::vec3 translate[nModels] = {glm::vec3(0,0,0), glm::vec3(4000, 0, 0), glm::vec3(9000, 0, 0),
 glm::vec3(900, 0, 0), glm::vec3(1750, 0, 0),
-glm::vec3(5000, 1000, 5000), glm::vec3(0, 0, 0),
+glm::vec3(5000, 1000, 5000), glm::vec3(4900, 1000, 4850), glm::vec3(9000, 0, 0)
 
 
 };
 glm::mat4 modelMatrix;          // set in display()
 glm::mat4 DuoMatrix;
 glm::vec3 DuoTranslate;
+glm::mat4 axesMatrix;
+glm::vec3 axesTranslate;
+glm::mat4 DuoRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
+glm::mat4 axesRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
 glm::mat4 UnumMatrix;
 glm::vec3 UnumTranslate;
 glm::mat4 viewMatrix;           // set in init()
@@ -101,10 +109,13 @@ void reshape(int width, int height) {
 // update and display animation state in window title
 void updateTitle() {
 	strcpy(titleStr, baseStr);
-	strcat(titleStr, viewStr);
-	strcat(titleStr, timerStr);
+	strcat(titleStr, warbirdStr);
+	strcat(titleStr, unumStr);
+	strcat(titleStr, secundusStr);
+	strcat(titleStr, updateStr);
 	strcat(titleStr, fpsStr);
-	// printf("title string = %s \n", titleStr);
+	strcat(titleStr, viewStr);
+	 //printf("title string = %s \n", titleStr);
 	glutSetWindowTitle(titleStr);
 }
 
@@ -122,7 +133,7 @@ void display() {
 	  }
 	  else if (m == 2) //Duo orbits Ruber
 	  {
-		  modelMatrix = rotationTwo * glm::translate(glm::mat4(), translate[m]) *
+		  modelMatrix = rotationTwo * DuoRotation*glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 		  DuoMatrix = modelMatrix;
 		  DuoTranslate = glm::vec3(DuoMatrix[3]);
@@ -140,6 +151,13 @@ void display() {
 		  modelMatrix = glm::translate(glm::mat4(), DuoTranslate) * rotationTwo * glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 	  }
+	  else if (m == 7) //Duo orbits Ruber
+	  {
+		  modelMatrix = rotationTwo * axesRotation*glm::translate(glm::mat4(), translate[m]) *
+			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
+		  axesMatrix = modelMatrix;
+		  axesTranslate = glm::vec3(DuoMatrix[3]);
+	  }
 	  else
 	  {
 		  modelMatrix = glm::translate(glm::mat4(), translate[m]) *
@@ -150,20 +168,29 @@ void display() {
 	  //Unum camera
 	  if (cameraDuo) //if cameraDuo is true, it means Unum is the current camera view and the Duo camera view is the next to be toggled
 	  {
-		  float xCoordinateUnum = UnumTranslate[0];
-		  float zCoordinateUnum = UnumTranslate[2];
-		  eye = glm::vec3(xCoordinateUnum, 0.0f, zCoordinateUnum + 4000.0f);     // camera is on XZ plane
-		  at = glm::vec3(xCoordinateUnum, 0.0f, 0.0f);                    // camera is looking at Duo
+		  glm::vec3 zUnum = glm::vec3(UnumMatrix[0][2], UnumMatrix[0][1] * -1, UnumMatrix[0][0] * -1);
+		  zUnum = glm::normalize(zUnum);     // camera is on XZ plane
+		  eye = UnumTranslate + zUnum * 4000.0f;                   // camera is looking at Unum
+		  at = UnumTranslate;
 		  up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
 		  viewMatrix = glm::lookAt(eye, at, up);
 	  }
 	  //Duo camera
 	  if (cameraFront) //if cameraFront is true, it means Duo is the current camera view and the front camera view is the next to be toggled
 	  {
-		  float xCoordinateDuo = DuoTranslate[0];
-		  float zCoordinateDuo = DuoTranslate[2];
-		  eye = glm::vec3(xCoordinateDuo, 0.0f, zCoordinateDuo + 4000.0f);     // camera is on XZ plane
-		  at = glm::vec3(xCoordinateDuo, 0.0f, 0.0f);                    // camera is looking at Duo
+		  //glm::vec3 zDuo = glm::vec3(DuoMatrix[0][2] *-1, DuoMatrix[1][2] *-1, DuoMatrix[2][2] *-1);
+		  //90 degrees CW about y-axis: (x, y, z) -> (-z, y, x) -- this is how to get z-axis from x-axis --
+		  //glm::vec3(DuoMatrix[0][0] * -1, DuoMatrix[1][0] * -1, DuoMatrix[2][0] * -1)
+		  //glm::vec3 zDuo = glm::vec3(DuoTranslate - glm::vec3(DuoMatrix[0]*-1.0f));
+		  //glm::vec3 zDuo = glm::vec3(DuoMatrix[0] * -1.0f);
+		  glm::vec3 zDuo = glm::vec3(DuoMatrix[0][2], DuoMatrix[0][1]*-1, DuoMatrix[0][0]*-1);
+		  //showVec3("Duo", zDuo);
+		  zDuo = glm::normalize(zDuo);
+		  //DuoMatrix[2], DuoMatrix[6], DuoMatrix[10]
+		  //eye = glm::vec3(xCoordinateDuo, 0.0f, zCoordinateDuo + 4000.0f);     // camera is on XZ plane
+		  eye = DuoTranslate + zDuo * 4000.0f;
+		  //at = glm::vec3(xCoordinateDuo, 0.0f, 0.0f);                    // camera is looking at Duo
+		  at = DuoTranslate;
 		  up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
 		  viewMatrix = glm::lookAt(eye, at, up);
 	  }
@@ -185,7 +212,8 @@ void display() {
   currentTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
   timeInterval = currentTime - lastTime;
   if (timeInterval >= 1000) {
-	  sprintf(fpsStr, " fps %4d", (int)(frameCount / (timeInterval / 1000.0f)));
+	  sprintf(fpsStr, "  F/S %4d", (int)(frameCount / (timeInterval / 1000.0f)));
+	  sprintf(updateStr, "  U/S %4d", (int)(frameCount / (timeInterval / 1000.0f)));
 	  lastTime = currentTime;
 	  frameCount = 0;
 	  updateTitle();
@@ -213,6 +241,19 @@ void intervalTimer(int i) {
 void keyboard(unsigned char key, int x, int y) {
 	switch (key) {
 	case 033: case 'q':  case 'Q': exit(EXIT_SUCCESS); break;
+	/*case 'a': case 'A':  // change animation timer
+		// printf("%s   %s\n", updateStr, fpsStr);
+		if (idleTimerFlag) { // switch to interval timer  
+			glutIdleFunc(NULL);
+			strcpy(updateStr, " interval timer");
+			idleTimerFlag = false;
+		}
+		else   {         // switch to idle timer
+			glutIdleFunc(update);
+			strcpy(updateStr, " idle timer");
+			idleTimerFlag = true;
+		}
+		break;*/
 
 	case 'v': case 'V' : //toggle camera
 		if (cameraFront)
@@ -221,7 +262,7 @@ void keyboard(unsigned char key, int x, int y) {
 			at = glm::vec3(0);            // position camera is looking at
 			up = glm::vec3(0.0f, 1.0f, 0.0f);            // camera'a up vector
 			viewMatrix = glm::lookAt(eye, at, up);
-			strcpy(viewStr, " front view");
+			strcpy(viewStr, " View Front");
 			cameraFront = false;
 			cameraTop = true;
 			break;
@@ -232,7 +273,7 @@ void keyboard(unsigned char key, int x, int y) {
 			at = glm::vec3(0);                    // camera is looking at origin
 			up = glm::vec3(0.0f, 0.0f, -1.0f);                    // camera's up is -Z
 			viewMatrix = glm::lookAt(eye, at, up);
-			strcpy(viewStr, " top view");
+			strcpy(viewStr, " View Top");
 			cameraTop = false;
 			cameraShip = true;
 			break;
@@ -243,7 +284,7 @@ void keyboard(unsigned char key, int x, int y) {
 			at = glm::vec3(5000.0f, 1000.0f, 5000.0f);                    // camera is looking at warbird
 			up = glm::vec3(0.0f, 300.0f, 0.0f);                    // camera looking over the ship
 			viewMatrix = glm::lookAt(eye, at, up);
-			strcpy(viewStr, " ship view");
+			strcpy(viewStr, " View Warbird");
 			cameraShip = false;
 			cameraUnum = true;
 			break;
@@ -254,18 +295,18 @@ void keyboard(unsigned char key, int x, int y) {
 			at = glm::vec3(4000.0f, 0.0f, 0.0f);                    // camera is looking at Unum
 			up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
 			viewMatrix = glm::lookAt(eye, at, up);
-			strcpy(viewStr, " Unum view");
+			strcpy(viewStr, " View Unum");
 			cameraUnum = false;
 			cameraDuo = true;
 			break;
 		}
 		else
 		{
-			eye = glm::vec3(-9000.0f, 0.0f, 4000.0f);     // camera is on XZ plane
-			at = glm::vec3(-9000.0f, 0.0f, 0.0f);                    // camera is looking at Duo
+			eye = glm::vec3(9000.0f, 0.0f, 4000.0f);     // camera is on XZ plane
+			at = glm::vec3(9000.0f, 0.0f, 0.0f);                    // camera is looking at Duo
 			up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
 			viewMatrix = glm::lookAt(eye, at, up);
-			strcpy(viewStr, " Duo view");
+			strcpy(viewStr, " View Duo");
 			cameraDuo = false;
 			cameraFront = true;
 			break;
@@ -273,7 +314,7 @@ void keyboard(unsigned char key, int x, int y) {
 
 		break;
 	
-	case 'f': case 'F':  // front view
+	/*case 'f': case 'F':  // front view
 		eye = glm::vec3(0.0f, 10000.0f, 20000.0f);   // camera's position
 		at = glm::vec3(0);            // position camera is looking at
 		up = glm::vec3(0.0f, 1.0f, 0.0f);            // camera'a up vector
@@ -290,7 +331,7 @@ void keyboard(unsigned char key, int x, int y) {
 		at = glm::vec3(0);                    // camera is looking at origin
 		up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
 		viewMatrix = glm::lookAt(eye, at, up);
-		strcpy(viewStr, " top view"); break;
+		strcpy(viewStr, " top view"); break;*/
 	}
 	updateTitle();
 }
@@ -324,7 +365,7 @@ void init() {
 
   // set render state values
   glEnable(GL_DEPTH_TEST);
-  glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
   lastTime = glutGet(GLUT_ELAPSED_TIME);  // get elapsed system time
   }
