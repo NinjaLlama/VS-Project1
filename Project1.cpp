@@ -26,13 +26,13 @@ Mike Barnes
 
 const int X = 0, Y = 1, Z = 2 ,W=3, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
-const int nModels = 8;  // number of models in this scene
+const int nModels = 7;  // number of models in this scene
 //I added the ship I made and replace xyz coordinate plane with a model of the sun with the x coordinate in white, the y coordinate in green and z in blue
 char * modelFile[nModels] = {"Ruber.tri", "Unum.tri ","Duo.tri", "Primus.tri",
-"Segundus.tri", "BattleCruiser.tri", "Missle.tri", "axes-r100.tri" };
+"Segundus.tri", "BattleCruiser.tri", "Missle.tri" };
 float modelBR[nModels];       // model's bounding radius
 float scaleValue[nModels];    // model's scaling "size" value
-const int nVertices[nModels] = {264 *3, 264 * 3, 278 * 3, 264 * 3, 264 * 3, 2772 * 3, 644 * 3, 120 * 3};
+const int nVertices[nModels] = {264 *3, 264 * 3, 278 * 3, 264 * 3, 264 * 3, 2772 * 3, 644 * 3};
 char * vertexShaderFile   = "simpleVertex.glsl";     
 char * fragmentShaderFile = "simpleFragment.glsl";    
 GLuint shaderProgram; 
@@ -48,6 +48,8 @@ bool cameraTop = true; //starts with front camera, switch to top when 'v' is pre
 bool cameraShip = false;
 bool cameraUnum = false;
 bool cameraDuo = false;
+
+bool debug = false;
 
 // window title strings
 char baseStr[50] = "465 Project 1 : ";
@@ -75,11 +77,11 @@ GLuint MVP ;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 // model, view, projection matrices and values to create modelMatrix.
 //loaded in order of Ruber, Umun, Duo, Primus, Secundus, Warbird, missiles
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 500.0f, 1000.0f};   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 200.0f};   // size of model
 glm::vec3 scale[nModels];       // set in init()
 glm::vec3 translate[nModels] = {glm::vec3(0,0,0), glm::vec3(4000, 0, 0), glm::vec3(9000, 0, 0),
 glm::vec3(900, 0, 0), glm::vec3(1750, 0, 0),
-glm::vec3(5000, 1000, 5000), glm::vec3(4900, 1000, 4850), glm::vec3(9000, 0, 0)
+glm::vec3(5000, 1000, 5000), glm::vec3(4900, 1000, 4850)
 
 
 };
@@ -89,7 +91,7 @@ glm::vec3 DuoTranslate;
 glm::mat4 axesMatrix;
 glm::vec3 axesTranslate;
 glm::mat4 DuoRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
-glm::mat4 axesRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
+//glm::mat4 axesRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
 glm::mat4 UnumMatrix;
 glm::vec3 UnumTranslate;
 glm::mat4 viewMatrix;           // set in init()
@@ -151,13 +153,13 @@ void display() {
 		  modelMatrix = glm::translate(glm::mat4(), DuoTranslate) * rotationTwo * glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 	  }
-	  else if (m == 7) //Duo orbits Ruber
+	  /*else if (m == 7 && debug) //Duo orbits Ruber
 	  {
 		  modelMatrix = rotationTwo * axesRotation*glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 		  axesMatrix = modelMatrix;
 		  axesTranslate = glm::vec3(DuoMatrix[3]);
-	  }
+	  }*/
 	  else
 	  {
 		  modelMatrix = glm::translate(glm::mat4(), translate[m]) *
@@ -280,9 +282,9 @@ void keyboard(unsigned char key, int x, int y) {
 		}
 		else if (cameraShip)
 		{
-			eye = glm::vec3(5000.0f, 300.0f, 1000.0f);     // camera is up and behind the ship
+			eye = glm::vec3(5000.0f, 1300.0f, 6000.0f);     // camera is up and behind the ship
 			at = glm::vec3(5000.0f, 1000.0f, 5000.0f);                    // camera is looking at warbird
-			up = glm::vec3(0.0f, 300.0f, 0.0f);                    // camera looking over the ship
+			up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera looking over the ship
 			viewMatrix = glm::lookAt(eye, at, up);
 			strcpy(viewStr, " View Warbird");
 			cameraShip = false;
@@ -312,6 +314,18 @@ void keyboard(unsigned char key, int x, int y) {
 			break;
 		}
 
+		break;
+	case 'd': case 'D':  // front view
+		
+		if (!debug)
+		{
+			debug = true;
+		}
+		else
+		{
+			debug = false;
+		}
+		
 		break;
 	
 	/*case 'f': case 'F':  // front view
