@@ -29,10 +29,10 @@ const int X = 0, Y = 1, Z = 2 ,W=3, START = 0, STOP = 1;
 const int nModels = 8;  // number of models in this scene
 //I added the ship I made and replace xyz coordinate plane with a model of the sun with the x coordinate in white, the y coordinate in green and z in blue
 char * modelFile[nModels] = {"Ruber.tri", "Unum.tri ","Duo.tri", "Primus.tri",
-"Segundus.tri", "BattleCruiser.tri", "sphere-r50.tri", "axes-r100.tri" };
+"Segundus.tri", "BattleCruiser.tri", "Missle.tri", "axes-r100.tri" };
 float modelBR[nModels];       // model's bounding radius
 float scaleValue[nModels];    // model's scaling "size" value
-const int nVertices[nModels] = {264 *3, 264 * 3, 278 * 3, 264 * 3, 264 * 3, 2772 * 3, 264 * 3, 120 * 3};
+const int nVertices[nModels] = {264 *3, 264 * 3, 278 * 3, 264 * 3, 264 * 3, 2772 * 3, 644 * 3, 120 * 3};
 char * vertexShaderFile   = "simpleVertex.glsl";     
 char * fragmentShaderFile = "simpleFragment.glsl";    
 GLuint shaderProgram; 
@@ -75,7 +75,7 @@ GLuint MVP ;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 // model, view, projection matrices and values to create modelMatrix.
 //loaded in order of Ruber, Umun, Duo, Primus, Secundus, Warbird, missiles
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 25.0f, 1000.0f};   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 500.0f, 1000.0f};   // size of model
 glm::vec3 scale[nModels];       // set in init()
 glm::vec3 translate[nModels] = {glm::vec3(0,0,0), glm::vec3(4000, 0, 0), glm::vec3(9000, 0, 0),
 glm::vec3(900, 0, 0), glm::vec3(1750, 0, 0),
