@@ -1,23 +1,30 @@
 /*
 
-manyModelsStatic.cpp
+Comp 465 Warbird Simulation Phase 1
+Therese Horey
+Jesus Moran-Perez
 
-465 utility include files:  shader465.hpp, triModel465.hpp  
+Project1.cpp
 
-Shaders:  simpleVertex.glsl and simpleFragment.glsl
-  provide flat shading with a fixed light position
+This file contains all the C++ code for Phase 1.
+All models are loaded into an array and are given an initial size and translate vector.
+The init() method loads the files and sets the initial view (front view).
+The display() method handles the planet and moon rotation animations, as well as dynamic cameras for Unum and Duo.
+The update() method creates the two rotation matrices for Unum and Primus, and Duo and Secundus.
+The keyboard() method handles keypress controls.
 
-C OpenGL Core 3.3 example that loads "nModels" *.tri model files 
-and displays them in at static locations with a static view.
-Demonstrates use of triModel465.hpp functions for loading *.tri models.
+Controls:
+	- v to toggle camera
+	- d to toggle debug options *not fully implemented*
+	- q to exit program
 
-display() updated to comment out unneeded statements like:
-glEnableVertexAttribArray( vPosition[m] );
+TODO : Change program to an object oriented style. Write classes for Planet, Moon, Warbird, and Camera(?).
 
-These lines are not needed even when the models are moving.
 
-Mike Barnes
-10/23/2014
+*** If 'Start Without Debugging' is unselectable, 
+go to the Solution properties in the Solution Explorer
+and make sure 'Single Startup Project' is selected ***
+
 */
 
 # define __Windows__
@@ -27,7 +34,6 @@ Mike Barnes
 const int X = 0, Y = 1, Z = 2 ,W=3, START = 0, STOP = 1;
 // constants for models:  file names, vertex count, model display size
 const int nModels = 7;  // number of models in this scene
-//I added the ship I made and replace xyz coordinate plane with a model of the sun with the x coordinate in white, the y coordinate in green and z in blue
 char * modelFile[nModels] = {"Ruber.tri", "Unum.tri ","Duo.tri", "Primus.tri",
 "Segundus.tri", "BattleCruiser.tri", "Missle.tri" };
 float modelBR[nModels];       // model's bounding radius
@@ -49,6 +55,7 @@ bool cameraShip = false;
 bool cameraUnum = false;
 bool cameraDuo = false;
 
+//debug boolean
 bool debug = false;
 
 // window title strings
@@ -67,10 +74,9 @@ GLfloat rotateRadianTwo = 0.0f;
 glm::mat4 identity(1.0f);
 glm::mat4 rotationOne;  // the modelMatrix
 glm::mat4 rotationTwo;
-int timerDelay = 40, frameCount = 0;
+int timerDelay = 40, frameCount = 0;  //set to 25 fps
 double currentTime, lastTime, timeInterval;
-bool idleTimerFlag = false;  // interval or idle timer ?
-bool wireFrame = false;     // initially show surfaces
+bool idleTimerFlag = false;  // interval or idle timer ? - not currently implemented
 
 // Shader handles, matrices, etc
 GLuint MVP ;  // Model View Projection matrix's handle
@@ -85,15 +91,18 @@ glm::vec3(5000, 1000, 5000), glm::vec3(4900, 1000, 4850)
 
 
 };
-glm::mat4 modelMatrix;          // set in display()
+
+//Unum and Duo matrices
 glm::mat4 DuoMatrix;
 glm::vec3 DuoTranslate;
-glm::mat4 axesMatrix;
+/*glm::mat4 axesMatrix;		//for debugging
 glm::vec3 axesTranslate;
+glm::mat4 axesRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));*/
 glm::mat4 DuoRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
-//glm::mat4 axesRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
 glm::mat4 UnumMatrix;
 glm::vec3 UnumTranslate;
+
+glm::mat4 modelMatrix;          // set in display()
 glm::mat4 viewMatrix;           // set in init()
 glm::mat4 projectionMatrix;     // set in reshape()
 glm::mat4 ModelViewProjectionMatrix; // set in display();
@@ -135,7 +144,7 @@ void display() {
 	  }
 	  else if (m == 2) //Duo orbits Ruber
 	  {
-		  modelMatrix = rotationTwo * DuoRotation*glm::translate(glm::mat4(), translate[m]) *
+		  modelMatrix = rotationTwo * DuoRotation * glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 		  DuoMatrix = modelMatrix;
 		  DuoTranslate = glm::vec3(DuoMatrix[3]);
@@ -153,12 +162,12 @@ void display() {
 		  modelMatrix = glm::translate(glm::mat4(), DuoTranslate) * rotationTwo * glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 	  }
-	  /*else if (m == 7 && debug) //Duo orbits Ruber
+	  /*else if (m == 7 && debug) //axes for Duo
 	  {
 		  modelMatrix = rotationTwo * axesRotation*glm::translate(glm::mat4(), translate[m]) *
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 		  axesMatrix = modelMatrix;
-		  axesTranslate = glm::vec3(DuoMatrix[3]);
+		  axesTranslate = glm::vec3(axesMatrix[3]);
 	  }*/
 	  else
 	  {
@@ -166,34 +175,27 @@ void display() {
 			  glm::scale(glm::mat4(), glm::vec3(scale[m]));
 	  }
 	//dynamic cameras
-	  //~~~ my camera logic is messed up, how to fix???? ~~~
 	  //Unum camera
 	  if (cameraDuo) //if cameraDuo is true, it means Unum is the current camera view and the Duo camera view is the next to be toggled
 	  {
+		  //90 degrees CW about y-axis: (x, y, z) -> (-z, y, x) -- this is how to get z-axis from x-axis --
 		  glm::vec3 zUnum = glm::vec3(UnumMatrix[0][2], UnumMatrix[0][1] * -1, UnumMatrix[0][0] * -1);
-		  zUnum = glm::normalize(zUnum);     // camera is on XZ plane
-		  eye = UnumTranslate + zUnum * 4000.0f;                   // camera is looking at Unum
-		  at = UnumTranslate;
-		  up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
+		  zUnum = glm::normalize(zUnum);     
+		  eye = UnumTranslate + zUnum * 4000.0f;        // camera is 4000 units out along Unum's -z axis        
+		  at = UnumTranslate;							// camera is looking at Unum
+		  up = glm::vec3(0.0f, 1.0f, 0.0f);             // camera's up is Y
 		  viewMatrix = glm::lookAt(eye, at, up);
 	  }
 	  //Duo camera
 	  if (cameraFront) //if cameraFront is true, it means Duo is the current camera view and the front camera view is the next to be toggled
 	  {
-		  //glm::vec3 zDuo = glm::vec3(DuoMatrix[0][2] *-1, DuoMatrix[1][2] *-1, DuoMatrix[2][2] *-1);
 		  //90 degrees CW about y-axis: (x, y, z) -> (-z, y, x) -- this is how to get z-axis from x-axis --
-		  //glm::vec3(DuoMatrix[0][0] * -1, DuoMatrix[1][0] * -1, DuoMatrix[2][0] * -1)
-		  //glm::vec3 zDuo = glm::vec3(DuoTranslate - glm::vec3(DuoMatrix[0]*-1.0f));
-		  //glm::vec3 zDuo = glm::vec3(DuoMatrix[0] * -1.0f);
 		  glm::vec3 zDuo = glm::vec3(DuoMatrix[0][2], DuoMatrix[0][1]*-1, DuoMatrix[0][0]*-1);
 		  //showVec3("Duo", zDuo);
 		  zDuo = glm::normalize(zDuo);
-		  //DuoMatrix[2], DuoMatrix[6], DuoMatrix[10]
-		  //eye = glm::vec3(xCoordinateDuo, 0.0f, zCoordinateDuo + 4000.0f);     // camera is on XZ plane
-		  eye = DuoTranslate + zDuo * 4000.0f;
-		  //at = glm::vec3(xCoordinateDuo, 0.0f, 0.0f);                    // camera is looking at Duo
-		  at = DuoTranslate;
-		  up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
+		  eye = DuoTranslate + zDuo * 4000.0f;				// camera is 4000 units out along Duo's -z axis
+		  at = DuoTranslate;								// camera is looking at Duo
+		  up = glm::vec3(0.0f, 1.0f, 0.0f);                 // camera's up is Y
 		  viewMatrix = glm::lookAt(eye, at, up);
 	  }
 
@@ -222,12 +224,13 @@ void display() {
   }
   }
 
-// for use with Idle and intervalTimer functions 
 // to set rotation
 void update(void){
+	//rotation speed for Unum and Primus
 	rotateRadianOne += 0.004f;
 	if (rotateRadianOne >  2 * PI) rotateRadianOne = 0.0f;
 	rotationOne = glm::rotate(identity, rotateRadianOne, glm::vec3(0, 1, 0));
+	//rotation speed for Duo and Secundus
 	rotateRadianTwo += 0.002f;
 	if (rotateRadianTwo >  2 * PI) rotateRadianTwo = 0.0f;
 	rotationTwo = glm::rotate(identity, rotateRadianTwo, glm::vec3(0, 1, 0));
@@ -261,7 +264,7 @@ void keyboard(unsigned char key, int x, int y) {
 		if (cameraFront)
 		{
 			eye = glm::vec3(0.0f, 10000.0f, 20000.0f);   // camera's position
-			at = glm::vec3(0);            // position camera is looking at
+			at = glm::vec3(0);							// position camera is looking at, origin
 			up = glm::vec3(0.0f, 1.0f, 0.0f);            // camera'a up vector
 			viewMatrix = glm::lookAt(eye, at, up);
 			strcpy(viewStr, " View Front");
@@ -272,7 +275,7 @@ void keyboard(unsigned char key, int x, int y) {
 		else if (cameraTop)
 		{
 			eye = glm::vec3(0.0f, 20000.0f, 0.0f);     // camera is on Z and above origin
-			at = glm::vec3(0);                    // camera is looking at origin
+			at = glm::vec3(0);							// camera is looking at origin
 			up = glm::vec3(0.0f, 0.0f, -1.0f);                    // camera's up is -Z
 			viewMatrix = glm::lookAt(eye, at, up);
 			strcpy(viewStr, " View Top");
@@ -284,7 +287,7 @@ void keyboard(unsigned char key, int x, int y) {
 		{
 			eye = glm::vec3(5000.0f, 1300.0f, 6000.0f);     // camera is up and behind the ship
 			at = glm::vec3(5000.0f, 1000.0f, 5000.0f);                    // camera is looking at warbird
-			up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera looking over the ship
+			up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
 			viewMatrix = glm::lookAt(eye, at, up);
 			strcpy(viewStr, " View Warbird");
 			cameraShip = false;
@@ -293,10 +296,7 @@ void keyboard(unsigned char key, int x, int y) {
 		}
 		else if (cameraUnum)
 		{
-			eye = glm::vec3(4000.0f, 0.0f, 4000.0f);     // camera is on XZ plane
-			at = glm::vec3(4000.0f, 0.0f, 0.0f);                    // camera is looking at Unum
-			up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
-			viewMatrix = glm::lookAt(eye, at, up);
+			//dynamic camera handled in display()
 			strcpy(viewStr, " View Unum");
 			cameraUnum = false;
 			cameraDuo = true;
@@ -304,10 +304,7 @@ void keyboard(unsigned char key, int x, int y) {
 		}
 		else
 		{
-			eye = glm::vec3(9000.0f, 0.0f, 4000.0f);     // camera is on XZ plane
-			at = glm::vec3(9000.0f, 0.0f, 0.0f);                    // camera is looking at Duo
-			up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
-			viewMatrix = glm::lookAt(eye, at, up);
+			//dynamic camera handled in display()
 			strcpy(viewStr, " View Duo");
 			cameraDuo = false;
 			cameraFront = true;
@@ -315,7 +312,7 @@ void keyboard(unsigned char key, int x, int y) {
 		}
 
 		break;
-	case 'd': case 'D':  // front view
+	case 'd': case 'D':  // debug case, not fully implemented yet
 		
 		if (!debug)
 		{
@@ -327,25 +324,6 @@ void keyboard(unsigned char key, int x, int y) {
 		}
 		
 		break;
-	
-	/*case 'f': case 'F':  // front view
-		eye = glm::vec3(0.0f, 10000.0f, 20000.0f);   // camera's position
-		at = glm::vec3(0);            // position camera is looking at
-		up = glm::vec3(0.0f, 1.0f, 0.0f);            // camera'a up vector
-		viewMatrix = glm::lookAt(eye, at, up);
-		strcpy(viewStr, " front view"); break;
-	case 't': case 'T':  // top view
-		eye = glm::vec3(0.0f, 20000.0f, 0.0f);     // camera is on Z and above origin
-		at = glm::vec3(0);                    // camera is looking at origin
-		up = glm::vec3(0.0f, 0.0f, -1.0f);                    // camera's up is -Z
-		viewMatrix = glm::lookAt(eye, at, up);
-		strcpy(viewStr, " top view"); break;
-	case 'l': case 'L':  // front and right view
-		eye = glm::vec3(5000.0f, 5000.0f, 20000.0f);     // camera is on Z and above origin
-		at = glm::vec3(0);                    // camera is looking at origin
-		up = glm::vec3(0.0f, 1.0f, 0.0f);                    // camera's up is Y
-		viewMatrix = glm::lookAt(eye, at, up);
-		strcpy(viewStr, " top view"); break;*/
 	}
 	updateTitle();
 }
@@ -371,7 +349,7 @@ void init() {
 
   // initially use a front view
   eye = glm::vec3(0.0f, 10000.0f, 20000.0f);   // camera's position
-  at = glm::vec3(0);            // position camera is looking at
+  at = glm::vec3(0);						   // position camera is looking at
   up = glm::vec3(0.0f, 1.0f, 0.0f);            // camera'a up vector
 
   viewMatrix = glm::lookAt(eye, at, up);
