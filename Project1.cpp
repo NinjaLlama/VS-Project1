@@ -75,7 +75,8 @@ GLuint MVP ;  // Model View Projection matrix's handle
 GLuint vPosition[nModels], vColor[nModels], vNormal[nModels];   // vPosition, vColor, vNormal handles for models
 // model, view, projection matrices and values to create modelMatrix.
 //loaded in order of Ruber, Umun, Duo, Primus, Secundus, Warbird, missiles
-float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 500.0f, 1000.0f};   // size of model
+float modelSize[nModels] = { 2000.0f, 200.0f, 400.0f, 100.0f, 150.0f, 500.0f, 500
+.0f, 1000.0f};   // size of model
 glm::vec3 scale[nModels];       // set in init()
 glm::vec3 translate[nModels] = {glm::vec3(0,0,0), glm::vec3(4000, 0, 0), glm::vec3(9000, 0, 0),
 glm::vec3(900, 0, 0), glm::vec3(1750, 0, 0),
