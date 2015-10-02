@@ -2,7 +2,7 @@
 
 Comp 465 Warbird Simulation Phase 1
 Therese Horey
-Jesus Moran-Perez
+Jesus Moran Perez
 
 Project1.cpp
 
@@ -98,7 +98,7 @@ glm::vec3 DuoTranslate;
 /*glm::mat4 axesMatrix;		//for debugging
 glm::vec3 axesTranslate;
 glm::mat4 axesRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));*/
-glm::mat4 DuoRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0));
+glm::mat4 DuoRotation = glm::rotate(identity, PI, glm::vec3(0, 1, 0)); //used to rotate Duo 180 degrees CCW, since Duo is initial placed at +9000 on X
 glm::mat4 UnumMatrix;
 glm::vec3 UnumTranslate;
 
